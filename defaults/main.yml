@@ -5,8 +5,12 @@ users_known:
     }
 ### Current user
   - { username: "{{ lookup('env', 'USER') }}",
+      # /etc/passwd Field 5 => GECOS "<NAME>,,,"
       name: "{{ lookup('pipe', 'getent passwd ' + lookup('env', 'USER') + '|cut -f5 -d:|cut -f1 -d,') }}",
+      # /etc/passwd Field 3 => "<UID>"
       uid: "{{ lookup('pipe', 'getent passwd ' + lookup('env', 'USER') + '|cut -f3 -d:') }}",
+      # /etc/passwd Field 4 => GID => /etc/group Field 1 => <GROUP>
       group: "{{ lookup('pipe', ('getent group ' + lookup('pipe', ('getent passwd ' + lookup('env', 'USER') + '|cut -f4 -d:')) + '|cut -f1 -d:')) }}",
+      # /etc/group Field 4 => "<GID>"
       gid: "{{ lookup('pipe', 'getent group ' + lookup('env', 'USER') + '|cut -f4 -d:') }}"
     }
