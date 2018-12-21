@@ -45,7 +45,7 @@
     name: "{{ user.group }}"
     gid: "{{ user.gid }}"
   with_items:
-    - "{{ username }}"
+    - "{{ user.group }}"
 
 - name: User account exists
   become: "{{ ansible_user_uid != 0 }}"
