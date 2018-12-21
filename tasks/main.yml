@@ -36,7 +36,6 @@
     regexp: ".* name:( ){{ username }},"
     insertbefore: ']'
     create: true
-  register: save
   with_items:
     - "{{ username }}"
 
@@ -45,7 +44,6 @@
   group:
     name: "{{ user.group }}"
     gid: "{{ user.gid }}"
-  register: common_user_group
   with_items:
     - "{{ username }}"
 
@@ -57,6 +55,5 @@
     uid: "{{ user.uid }}"
     group: "{{ user.group }}"
     password: "{{ (lookup('password', ops.key_dir + '/users/' + username + '/password'))|password_hash('sha512', ops.salt ) }}"
-  register: common_user
   with_items:
     - "{{ username }}"
