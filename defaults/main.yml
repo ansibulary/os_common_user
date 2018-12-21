@@ -8,5 +8,5 @@ users_known:
       name: "{{ lookup('pipe', 'getent passwd ' + lookup('env', 'USER') + '|cut -f5 -d:|cut -f1 -d,') }}",
       uid: "{{ lookup('pipe', 'getent passwd ' + lookup('env', 'USER') + '|cut -f3 -d:') }}",
       group: "{{ lookup('pipe', ('getent group ' + lookup('pipe', ('getent passwd ' + lookup('env', 'USER') + '|cut -f4 -d:')) + '|cut -f1 -d:')) }}",
-      gid: "{{ lookup('pipe', 'getent group ' + lookup('env', 'USER') + '|cut -f3 -d:') }}"
+      gid: "{{ lookup('pipe', 'getent group ' + lookup('env', 'USER') + '|cut -f4 -d:') }}"
     }
