@@ -20,12 +20,14 @@
       { name: "{{ username }}",
         comment: "{{ ((common_users|json_query(comment_query)) == [])|ternary( username, (common_users|json_query(comment_query)).0 )  }}",
         uid: "{{ ((common_users|json_query(uid_query)) == [])|ternary( common_users|json_query('[].uid')|max|int + 1, (common_users|json_query(uid_query)).0 )  }}",
-        gid: "{{ ((common_users|json_query(gid_query)) == [])|ternary( common_users|json_query('[].gid')|max|int + 1, (common_users|json_query(gid_query)).0 )  }}" }
+        gid: "{{ ((common_users|json_query(gid_query)) == [])|ternary( common_users|json_query('[].gid')|max|int + 1, (common_users|json_query(gid_query)).0 )  }}",
+        group: "{{ ((common_users|json_query(group_query)) == [])|ternary( username, (common_users|json_query(group_query)).0 )  }}"
+      }
   vars:
     comment_query: "[?name=='{{ username }}'].comment"
     uid_query: "[?name=='{{ username }}'].uid"
     gid_query: "[?name=='{{ username }}'].gid"
-#  when: username not in common_users|json_query('[*].name')
+    group_query: "[?name=='{{ username }}'].group"
 
 - name: User saved
   lineinfile:
@@ -41,7 +43,7 @@
 - name: User group exists
   become: true
   group:
-    name: "{{ username }}"
+    name: "{{ user.group }}"
     gid: "{{ user.gid }}"
   register: common_user_group
   with_items:
@@ -53,7 +55,7 @@
     name: "{{ username }}"
     comment: "{{ user.comment }}"
     uid: "{{ user.uid }}"
-    group: "{{ username }}"
+    group: "{{ user.group }}"
     password: "{{ (lookup('password', ops.key_dir + '/users/' + username + '/password'))|password_hash('sha512', ops.salt ) }}"
   register: common_user
   with_items:
