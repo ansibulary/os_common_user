@@ -1,0 +1,10 @@
+known_users:
+### root
+  - { username: root,
+      uid: 0
+    }
+### Current user
+  - { name: "{{ lookup('env', username|default('USER')) }}",
+      comment: "{{ lookup('pipe', 'getent passwd ' + lookup('env', 'USER') + '|cut -f5 -d:|cut -f1 -d,') }}",
+      uid: "{{ lookup('pipe', 'getent passwd ' + lookup('env', 'USER') + '|cut -f3 -d:') }}"
+    }

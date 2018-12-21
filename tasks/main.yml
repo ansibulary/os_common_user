@@ -1,0 +1,60 @@
+---
+# User consistency
+# required param: "username" (string)
+# manages: group_vars/all/common_users
+
+- name: Common users known
+  copy:
+    dest: "{{ playbook_dir }}/group_vars/all/common_users"
+    content: "common_users{{':'}}\n{% for user in known_users %}\n  - {{ user|to_yaml }}{% endfor %}"
+  register: common_users_copy
+  when: common_users is not defined
+
+- name: Cache refreshed
+  when: common_users_copy is changed
+  include_vars: "{{ playbook_dir }}/group_vars/all/common_users"
+
+- name: Users known
+  set_fact:
+    user:
+      { name: "{{ username }}",
+        comment: "{{ ((common_users|json_query(comment_query)) == [])|ternary( username, (common_users|json_query(comment_query)).0 )  }}",
+        uid: "{{ ((common_users|json_query(uid_query)) == [])|ternary( common_users|json_query('[].uid')|max|int + 1, (common_users|json_query(uid_query)).0 )  }}",
+        gid: "{{ ((common_users|json_query(gid_query)) == [])|ternary( common_users|json_query('[].gid')|max|int + 1, (common_users|json_query(gid_query)).0 )  }}" }
+  vars:
+    comment_query: "[?name=='{{ username }}'].comment"
+    uid_query: "[?name=='{{ username }}'].uid"
+    gid_query: "[?name=='{{ username }}'].gid"
+#  when: username not in common_users|json_query('[*].name')
+
+- name: User saved
+  lineinfile:
+    dest: "{{ playbook_dir }}/group_vars/all/common_users"
+    line: "  - {{ user|to_yaml }}"
+    regexp: ".* name:( ){{ username }},"
+    insertbefore: ']'
+    create: true
+  register: save
+  with_items:
+    - "{{ username }}"
+
+- name: User group exists
+  become: true
+  group:
+    name: "{{ username }}"
+    gid: "{{ user.gid }}"
+  register: common_user_group
+  with_items:
+    - "{{ username }}"
+
+- name: User account exists
+  become: true
+  user:
+    name: "{{ username }}"
+    comment: "{{ user.comment }}"
+    uid: "{{ user.uid }}"
+    group: "{{ username }}"
+    password: "{{ (lookup('password', ops.key_dir + '/users/' + username + '/password'))|password_hash('sha512', ops.salt ) }}"
+  register: common_user
+  with_items:
+    - "{{ username }}"
