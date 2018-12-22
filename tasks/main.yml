@@ -6,7 +6,7 @@
 - name: Common users known
   copy:
     dest: "{{ playbook_dir }}/group_vars/all/common_users"
-    content: "common_users{{':'}}\n{% for user in known_users %}\n  - {{ user|to_yaml }}{% endfor %}"
+    content: "common_users{{':'}}\n{% for user in users_known %}\n  - {{ user|to_yaml }}{% endfor %}\n"
   register: common_users_copy
   when: common_users is not defined
 
@@ -18,23 +18,36 @@
   set_fact:
     user:
       { username: "{{ username }}",
-        comment: "{{ ((common_users|json_query(comment_query)) == [])|ternary( username, (common_users|json_query(comment_query)).0 )  }}",
-        uid: "{{ ((common_users|json_query(uid_query)) == [])|ternary( common_users|json_query('[].uid')|max|int + 1, (common_users|json_query(uid_query)).0 )  }}",
-        gid: "{{ ((common_users|json_query(gid_query)) == [])|ternary( common_users|json_query('[].gid')|max|int + 1, (common_users|json_query(gid_query)).0 )  }}",
-        group: "{{ ((common_users|json_query(group_query)) == [])|ternary( username, (common_users|json_query(group_query)).0 )  }}"
+
+        comment: "{{ (common_users|json_query(comment_query) == []) |ternary(
+                       username,
+                       (common_users|json_query(comment_query)).0 ) }}",
+
+        uid: "{{ ((common_users|json_query(uid_query)) == []) |ternary(
+                   (common_users|json_query('[].uid')|max|int + 1),
+                   (common_users|json_query(uid_query)).0 ) }}",
+
+        gid: "{{ ((common_users|json_query(gid_query)) == []) |ternary(
+                   ((common_users|json_query(uid_query)) == []) |ternary(
+                     (common_users|json_query('[].uid')|max|int + 1),
+                     (common_users|json_query(uid_query)).0),
+                   (common_users|json_query(gid_query)).0  ) }}",
+
+        group: "{{ ((common_users|json_query(group_query)) == []) |ternary(
+                     username,
+                     (common_users|json_query(group_query)).0 ) }}"
       }
   vars:
-    comment_query: "[?name=='{{ username }}'].comment"
-    uid_query: "[?name=='{{ username }}'].uid"
-    gid_query: "[?name=='{{ username }}'].gid"
-    group_query: "[?name=='{{ username }}'].group"
+    comment_query: "[?username=='{{ username }}'].comment"
+    uid_query: "[?username=='{{ username }}'].uid"
+    gid_query: "[?username=='{{ username }}'].gid"
+    group_query: "[?username=='{{ username }}'].group"
 
 - name: User saved
   lineinfile:
     dest: "{{ playbook_dir }}/group_vars/all/common_users"
     line: "  - {{ user|to_yaml }}"
-    regexp: ".* name:( ){{ username }},"
-    insertbefore: ']'
+    regexp: ".* username:( ){{ username }}[,}]"
     create: true
   with_items:
     - "{{ username }}"
