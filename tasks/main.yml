@@ -7,6 +7,8 @@
   copy:
     dest: "{{ playbook_dir }}/group_vars/all/common_users"
     content: "common_users{{':'}}\n{% for user in users_known %}\n  - {{ user|to_yaml }}{% endfor %}\n"
+    mode: 0660
+    group: "{{ ops.group|default(ansible_user_gid) }}"
   register: common_users_copy
   when: common_users is not defined
 
@@ -51,6 +53,8 @@
     line: "  - {{ user|to_yaml }}"
     regexp: ".* id:( ){{ username }}[,}]"
     create: true
+    mode: 0660
+    group: "{{ ops.group|default(ansible_user_gid) }}"
   with_items:
     - "{{ username }}"
 
