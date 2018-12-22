@@ -4,13 +4,9 @@ users_known:
       uid: 0
     }
 ### Current user
-  - { username: "{{ lookup('env', 'USER') }}",
-      # /etc/passwd Field 5 => GECOS <NAME>,,,
-      comment: "{{ lookup('pipe', 'getent passwd ' + lookup('env', 'USER') + '|cut -f5 -d:|cut -f1 -d,') }}",
-      # /etc/passwd Field 3 => <UID>
-      uid: "{{ lookup('pipe', 'getent passwd ' + lookup('env', 'USER') + '|cut -f3 -d:') }}",
-      # /etc/passwd Field 4 => GID => /etc/group Field 1 => <GROUP>
-      group: "{{ lookup('pipe', ('getent group ' + lookup('pipe', ('getent passwd ' + lookup('env', 'USER') + '|cut -f4 -d:')) + '|cut -f1 -d:')) }}",
-      # /etc/group Field 4 => <GID>
-      gid: "{{ lookup('pipe', 'getent group ' + lookup('env', 'USER') + '|cut -f4 -d:') }}"
+  - { username: "{{ ansible_user_id }}",
+      comment: "{{ ansible_user_gecos }}",
+      uid: "{{ ansible_user_uid }}",
+      group: "{{ lookup('pipe', ('getent group ' + (ansible_user_gid|string) + '|cut -f1 -d:')) }}",
+      gid: "{{ ansible_user_gid }}"
     }
