@@ -17,11 +17,11 @@
 - name: Users known
   set_fact:
     user:
-      { username: "{{ username }}",
+      { id: "{{ username }}",
 
-        comment: "{{ (common_users|json_query(comment_query) == []) |ternary(
+        gecos: "{{ (common_users|json_query(gecos_query) == []) |ternary(
                        username,
-                       (common_users|json_query(comment_query)).0 ) }}",
+                       (common_users|json_query(gecos_query)).0 ) }}",
 
         uid: "{{ ((common_users|json_query(uid_query)) == []) |ternary(
                    (common_users|json_query('[].uid')|max|int + 1),
@@ -38,16 +38,16 @@
                      (common_users|json_query(group_query)).0 ) }}"
       }
   vars:
-    comment_query: "[?username=='{{ username }}'].comment"
-    uid_query: "[?username=='{{ username }}'].uid"
-    gid_query: "[?username=='{{ username }}'].gid"
-    group_query: "[?username=='{{ username }}'].group"
+    gecos_query: "[?id=='{{ username }}'].gecos"
+    uid_query: "[?id=='{{ username }}'].uid"
+    gid_query: "[?id=='{{ username }}'].gid"
+    group_query: "[?id=='{{ username }}'].group"
 
 - name: User saved
   lineinfile:
     dest: "{{ playbook_dir }}/group_vars/all/common_users"
     line: "  - {{ user|to_yaml }}"
-    regexp: ".* username:( ){{ username }}[,}]"
+    regexp: ".* id:( ){{ username }}[,}]"
     create: true
   with_items:
     - "{{ username }}"
@@ -64,9 +64,9 @@
   become: "{{ ansible_user_uid != 0 }}"
   user:
     name: "{{ username }}"
-    comment: "{{ user.comment }}"
+    comment: "{{ user.gecos }}"
     uid: "{{ user.uid }}"
     group: "{{ user.group }}"
     password: "{{ (lookup('password', ops.key_dir + '/users/' + username + '/password'))|password_hash('sha512', ops.salt ) }}"
   with_items:
-    - "{{ username }}"
+    - "{{ usename }}"

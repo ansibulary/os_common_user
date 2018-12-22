@@ -1,11 +1,11 @@
 users_known:
 ### root user
-  - { username: root,
+  - { id: root,
       uid: 0
     }
 ### Current user
-  - { username: "{{ ansible_user_id }}",
-      comment: "{{ ansible_user_gecos }}",
+  - { id: "{{ ansible_user_id }}",
+      gecos: "{{ ansible_user_gecos }}",
       uid: "{{ ansible_user_uid }}",
       group: "{{ lookup('pipe', ('getent group ' + (ansible_user_gid|string) + '|cut -f1 -d:')) }}",
       gid: "{{ ansible_user_gid }}"
