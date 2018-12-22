@@ -10,10 +10,11 @@
   register: common_users_copy
   when: common_users is not defined
 
-- name: Cache refreshed
+- name: User cache refreshed
   when: common_users_copy is changed
   include_vars: "{{ playbook_dir }}/group_vars/all/common_users"
 
+# Increment max known uid, gid defaults to uid, nonscalars default to username
 - name: Users known
   set_fact:
     user:
@@ -43,6 +44,7 @@
     gid_query: "[?id=='{{ username }}'].gid"
     group_query: "[?id=='{{ username }}'].group"
 
+# Write to vars file with shared group ownership
 - name: User saved
   lineinfile:
     dest: "{{ playbook_dir }}/group_vars/all/common_users"
