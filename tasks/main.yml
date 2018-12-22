@@ -69,4 +69,4 @@
     group: "{{ user.group }}"
     password: "{{ (lookup('password', ops.key_dir + '/users/' + username + '/password'))|password_hash('sha512', ops.salt ) }}"
   with_items:
-    - "{{ usename }}"
+    - "{{ username }}"
